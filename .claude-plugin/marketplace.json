@@ -1,18 +1,26 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "claude-squad",
   "metadata": {
     "description": "Personal marketplace hosting the squad multi-agent workflow plugin.",
     "version": "0.1.0"
   },
   "owner": {
-    "name": "ali zohrevand"
+    "name": "ali zohrevand",
+    "url": "https://github.com/ali-zohrevand"
   },
   "plugins": [
     {
       "name": "squad",
-      "description": "Role-based, stack-adaptive plan/debug/implement/verify workflow.",
+      "description": "Role-based, stack-adaptive plan/debug/implement/verify workflow: 7 specialist subagents that detect your stack (TypeScript, Vue, NestJS, Go, PHP, HTML/JS) and run the right conventions + verify commands.",
       "source": "./",
-      "category": "workflow"
+      "category": "development",
+      "author": {
+        "name": "ali zohrevand",
+        "url": "https://github.com/ali-zohrevand"
+      },
+      "homepage": "https://github.com/ali-zohrevand/claude-squad",
+      "tags": ["agents", "multi-agent", "subagents", "workflow", "development", "tdd", "code-review"]
     }
   ]
 }
