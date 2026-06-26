@@ -1,0 +1,11 @@
+{
+  "name": "squad",
+  "description": "Role-based, stack-adaptive multi-agent workflow for Claude Code: plan / debug / implement / verify phases driven by a team of specialist subagents (product owner, tech lead, frontend, backend, QA, tester, security/OWASP).",
+  "version": "0.1.0",
+  "author": {
+    "name": "ali zohrevand"
+  },
+  "homepage": "https://github.com/ali-zohrevand/claude-squad",
+  "repository": "https://github.com/ali-zohrevand/claude-squad",
+  "license": "MIT"
+}

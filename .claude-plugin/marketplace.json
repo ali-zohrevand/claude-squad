@@ -1,0 +1,18 @@
+{
+  "name": "claude-squad",
+  "metadata": {
+    "description": "Personal marketplace hosting the squad multi-agent workflow plugin.",
+    "version": "0.1.0"
+  },
+  "owner": {
+    "name": "ali zohrevand"
+  },
+  "plugins": [
+    {
+      "name": "squad",
+      "description": "Role-based, stack-adaptive plan/debug/implement/verify workflow.",
+      "source": "./",
+      "category": "workflow"
+    }
+  ]
+}
