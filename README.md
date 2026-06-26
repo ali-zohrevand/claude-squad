@@ -160,6 +160,10 @@ Validate before pushing: `claude plugin validate ~/projects/claude-squad`. Inspe
 
 ---
 
+## Contributing
+
+Contributions welcome — new stack support, sharper agents, better commands, docs. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, house style, and the PR flow, and the **[Code of Conduct](CODE_OF_CONDUCT.md)**. Found a security issue? See **[SECURITY.md](SECURITY.md)**. Bugs and ideas → open an issue (templates provided).
+
 ## License
 
-MIT.
+[MIT](LICENSE) © ali zohrevand.

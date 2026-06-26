@@ -1,0 +1,42 @@
+name: Bug report
+description: Something in squad doesn't work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you ran and what went wrong.
+      placeholder: e.g. /squad:verify picked the wrong test commands for my Nest + Vue monorepo
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Project stack: ...
+        2. Command run: /squad:...
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+      description: From `claude plugin list` (e.g. squad 0.1.0)
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: Claude Code version + OS
+    validations:
+      required: false
