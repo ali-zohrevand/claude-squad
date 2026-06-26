@@ -4,6 +4,17 @@
 
 One install serves every project. It composes with the official plugins you already have (superpowers, code-review, security-review, context7, playwright) instead of reinventing them.
 
+## Quick install
+
+```text
+/plugin marketplace add ali-zohrevand/claude-squad
+/plugin install squad@claude-squad
+```
+
+Then reload Claude Code (Command Palette → "Developer: Reload Window"). Full details in [Install](#install).
+
+> ⏳ **Coming to the Claude community directory.** Once approved, you'll also be able to install it directly: `/plugin marketplace add anthropics/claude-plugins-community` then `/plugin install squad@claude-community`.
+
 ---
 
 ## Table of contents
