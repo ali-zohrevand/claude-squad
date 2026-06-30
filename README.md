@@ -128,7 +128,8 @@ The fan-out phases (`verify`, `implement`) are the token-heavy ones. squad keeps
 
 - **Per-agent effort.** Every agent pins an `effort` (`high` for tech-lead + security-owasp, `medium` for the rest) so it doesn't inherit an expensive session-wide `xhigh`/`max`. Lower effort = far fewer thinking tokens. Raise an agent's `effort` in its frontmatter only if you need deeper analysis.
 - **Cheap mechanical tier.** `tester` runs on **haiku** — it just executes lint/test/build and reports, no deep reasoning needed.
-- **Conditional fan-out.** `verify` and `implement` first do one cheap `tech-lead` pass to classify the change, then dispatch **only the lenses that apply** (no frontend reviewer for a backend-only diff, no security pass unless security-sensitive code changed). Skipping a lens is the single biggest saving — a one-file change might run two agents, not seven.
+- **Conditional fan-out.** `verify` and `implement` first do one cheap `tech-lead` pass to classify the change, then dispatch **only the lenses that apply** (no frontend reviewer for a backend-only diff, no security pass unless security-sensitive code changed), and for a small/single-domain change they skip the fan-out entirely and use one reviewer. Skipping a lens is the single biggest saving — a one-file change might run two agents, not seven.
+- **Context passed once, summaries back.** The orchestrator extracts the diff/design once and passes it inline to each agent (instead of every agent re-running `git diff` and re-reading the repo in its own fresh context), and each agent returns a short severity-ranked summary rather than the code it read.
 
 Extra knobs: set `CLAUDE_CODE_SUBAGENT_MODEL=haiku` (or `sonnet`) to force **every** subagent onto a cheaper model for a session; scope a review with `/squad:verify <subdir>` instead of the whole diff; and for tiny changes, skip the squad and use the built-in `/code-review` directly.
 

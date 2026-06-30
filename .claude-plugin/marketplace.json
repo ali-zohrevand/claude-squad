@@ -3,7 +3,7 @@
   "name": "claude-squad",
   "metadata": {
     "description": "Personal marketplace hosting the squad multi-agent workflow plugin.",
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "owner": {
     "name": "ali zohrevand",

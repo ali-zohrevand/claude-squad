@@ -9,7 +9,11 @@ Read-only, parallel review. Goal: a single, trustworthy go/no-go with only findi
 
 ## 1. Detect stack + scope the review (one cheap pass — controls cost)
 
-Dispatch **tech-lead** to detect the stack (load `squad:stack-conventions`) **and classify the changed files** so we only spend tokens on lenses that apply. Capture: the stack report, the exact verify commands for this repo, and which of these are touched — frontend files, backend files, tests, and security-sensitive code (auth, data access, input handling, secrets, external/LLM calls). Pass this to the fan-out.
+Dispatch **tech-lead** to detect the stack (load `squad:stack-conventions`) **and classify the changed files** so we only spend tokens on lenses that apply. Capture: the stack report, the exact verify commands for this repo, the **actual diff** (`git diff`), and which areas are touched — frontend, backend, tests, and security-sensitive code (auth, data access, input handling, secrets, external/LLM calls).
+
+**Then decide the shape (cost gate):** if the change is small and single-domain (one area, a handful of files), don't fan out — have `tech-lead` review it directly (+ `tester` for the verify suite) and skip to step 3. Fan out only when the diff is large or spans multiple domains.
+
+**Pass the captured diff + stack report inline in every delegation** so each agent works from that context — do NOT make agents re-run `git diff` or re-discover the codebase (each re-read is paid again in that agent's fresh context).
 
 ## 2. Fan out — only the lenses that apply (parallel, read-only, one message)
 
@@ -23,7 +27,7 @@ Dispatch **only** the relevant agents (skipping a lens is the biggest cost savin
 - **qa** → only if logic/behavior changed (skip for pure styling/docs). Coverage gaps: what edge case is untested.
 - **security-owasp** → only if security-sensitive code changed. OWASP Top 10 (2021) + API Top 10 (2023) + scanners. Optionally also run the built-in `/security-review` as a deterministic second gate.
 
-Agents run at the effort pinned in their frontmatter (tester on the cheap `haiku` tier; advisory roles `medium`; tech-lead/security `high`) — don't raise it unless a finding needs deeper analysis.
+Agents run at the effort pinned in their frontmatter (tester on the cheap `haiku` tier; advisory roles `medium`; tech-lead/security `high`) — don't raise it unless a finding needs deeper analysis. Tell each lens to **return only a short, severity-ranked list of findings — not the code it read** (verbose returns re-inflate the orchestrator's context).
 
 ## 3. Consolidate
 

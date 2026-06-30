@@ -17,7 +17,7 @@ For anything non-trivial, use the `superpowers:using-git-worktrees` skill to bui
 
 ## 3. Design review (parallel, read-only — only the lenses that apply)
 
-Before writing, dispatch **only** the specialists whose domain the change touches (skipping a lens is the main cost saving): frontend-dev if there's UI, backend-dev if there's server/data work, qa for test design, and security-owasp **only** if the change touches auth/data/input/secrets/external/LLM calls. For a small or single-domain task, one or two agents is enough — don't fan out the whole squad. Fold their input into the plan. Agents run at their pinned effort; that's deliberate — reserve higher effort for genuinely hard design problems.
+Before writing, dispatch **only** the specialists whose domain the change touches (skipping a lens is the main cost saving): frontend-dev if there's UI, backend-dev if there's server/data work, qa for test design, and security-owasp **only** if the change touches auth/data/input/secrets/external/LLM calls. For a small or single-domain task, one or two agents is enough — don't fan out the whole squad. **Pass the agreed design + each agent's owned paths inline in the delegation** so reviewers/writers don't re-derive the plan or re-scan the repo (each re-read is paid again in a fresh context); ask each to return a short summary, not code dumps. Fold their input into the plan. Agents run at their pinned effort; that's deliberate — reserve higher effort for genuinely hard design problems.
 
 ## 4. Write — serially, with TDD
 
