@@ -3,6 +3,7 @@ name: qa
 description: Quality strategist — designs the test plan, hunts edge cases and coverage gaps, and writes test files (unit/integration/e2e) in the project's framework. Advises in PLAN/DEBUG/VERIFY and writes tests during IMPLEMENT.
 tools: Read, Grep, Glob, Edit, Write, Bash, Skill
 model: sonnet
+effort: medium
 color: yellow
 ---
 

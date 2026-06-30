@@ -2,7 +2,7 @@
 name: tester
 description: Hands-on test runner and bug reproducer — executes the stack's lint/typecheck/test/build commands, reproduces reported issues with a minimal repro, and reports pass/fail with the actual output. Read-only except for running commands; never edits code or tests.
 tools: Read, Grep, Glob, Bash, Skill
-model: sonnet
+model: haiku
 color: orange
 ---
 

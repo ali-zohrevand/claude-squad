@@ -15,9 +15,9 @@ Dispatch **tech-lead** to: detect the stack (load `squad:stack-conventions`), co
 
 For anything non-trivial, use the `superpowers:using-git-worktrees` skill to build in an isolated worktree so the main checkout stays clean.
 
-## 3. Design review (parallel, read-only)
+## 3. Design review (parallel, read-only — only the lenses that apply)
 
-Before writing, dispatch the relevant specialists in one message to pressure-test the design against their lens (frontend-dev, backend-dev, qa, and security-owasp if the change touches auth/data/input/secrets/external calls). Fold their input into the plan.
+Before writing, dispatch **only** the specialists whose domain the change touches (skipping a lens is the main cost saving): frontend-dev if there's UI, backend-dev if there's server/data work, qa for test design, and security-owasp **only** if the change touches auth/data/input/secrets/external/LLM calls. For a small or single-domain task, one or two agents is enough — don't fan out the whole squad. Fold their input into the plan. Agents run at their pinned effort; that's deliberate — reserve higher effort for genuinely hard design problems.
 
 ## 4. Write — serially, with TDD
 

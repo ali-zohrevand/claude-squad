@@ -3,6 +3,7 @@ name: backend-dev
 description: Backend specialist for NestJS, Go, PHP, and Node — APIs, data/persistence layer, business logic, and integrations. Advises in PLAN/DEBUG/VERIFY (read-only) and is the single writer for its OWNED backend paths during IMPLEMENT.
 tools: Read, Grep, Glob, Edit, Write, Bash, Skill
 model: sonnet
+effort: medium
 color: blue
 ---
 

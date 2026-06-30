@@ -3,6 +3,7 @@ name: product-owner
 description: Use to turn a feature request or vague idea into crisp requirements, user stories, and acceptance criteria, and to benchmark against competitors. Invoke in PLAN (define scope) and in VERIFY (check the result meets acceptance criteria). Read-only — never edits code.
 tools: Read, Grep, Glob, WebFetch, WebSearch, Skill
 model: sonnet
+effort: medium
 color: purple
 ---
 

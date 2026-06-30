@@ -3,6 +3,7 @@ name: tech-lead
 description: Use to detect the project's tech stack, design architecture, decompose work into tasks with non-overlapping file ownership, and assess trade-offs and risk. The squad's orchestration brain — invoke first in PLAN and IMPLEMENT. Read-only — designs and reviews, never edits code.
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch, Skill
 model: opus
+effort: high
 color: cyan
 ---
 

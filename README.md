@@ -89,10 +89,10 @@ Seven specialist subagents (in `agents/`). Each has a focused persona, a least-p
 | `frontend-dev` | sonnet | Read, Grep, Glob, Edit, Write, Bash, Skill | Vue / TS / HTML-JS UI, components, state (Pinia), a11y; writer for FE-owned paths |
 | `backend-dev` | sonnet | Read, Grep, Glob, Edit, Write, Bash, Skill | NestJS / Go / PHP / Node APIs, data layer, business logic; writer for BE-owned paths |
 | `qa` | sonnet | Read, Grep, Glob, Edit, Write, Bash, Skill | Test strategy, edge cases, coverage gaps; writes test files |
-| `tester` | sonnet | Read, Grep, Glob, Bash, Skill | Runs the stack's lint/typecheck/test/build, reproduces bugs, reports pass/fail with evidence |
+| `tester` | haiku | Read, Grep, Glob, Bash, Skill | Runs the stack's lint/typecheck/test/build, reproduces bugs, reports pass/fail with evidence |
 | `security-owasp` | opus | Read, Grep, Glob, Bash, Skill | OWASP Top 10 (2021) + API Top 10 (2023) review; runs scanners; confidence-filtered findings |
 
-Models follow the wshobson/VoltAgent consensus (opus for architecture + security, sonnet for the rest) and use aliases — never pinned ids — so they never age. Override every subagent with `CLAUDE_CODE_SUBAGENT_MODEL` if you want.
+**Models & effort are tuned for cost.** Each agent pins a reasoning `effort` so it doesn't inherit an expensive session default: `high` for the deep roles (tech-lead, security-owasp), `medium` for the advisory/writer roles, and the mechanical `tester` runs on the cheap **haiku** tier (which has no effort knob). Aliases (`opus`/`sonnet`/`haiku`) are used — never pinned ids — so they never age. See [Cost controls](#cost-controls).
 
 ---
 
@@ -119,6 +119,18 @@ Polyglot repos (e.g. Vue front + Go back) load multiple files automatically.
 - **Deterministic commands**, not unreliable auto-routing — each command scripts exactly which agents run and in what order.
 - **One adaptive agent set, not N-per-language** — agents detect the stack at runtime.
 - **High signal** — reviews report only findings at confidence ≥ 80.
+
+---
+
+## Cost controls
+
+The fan-out phases (`verify`, `implement`) are the token-heavy ones. squad keeps them lean three ways:
+
+- **Per-agent effort.** Every agent pins an `effort` (`high` for tech-lead + security-owasp, `medium` for the rest) so it doesn't inherit an expensive session-wide `xhigh`/`max`. Lower effort = far fewer thinking tokens. Raise an agent's `effort` in its frontmatter only if you need deeper analysis.
+- **Cheap mechanical tier.** `tester` runs on **haiku** — it just executes lint/test/build and reports, no deep reasoning needed.
+- **Conditional fan-out.** `verify` and `implement` first do one cheap `tech-lead` pass to classify the change, then dispatch **only the lenses that apply** (no frontend reviewer for a backend-only diff, no security pass unless security-sensitive code changed). Skipping a lens is the single biggest saving — a one-file change might run two agents, not seven.
+
+Extra knobs: set `CLAUDE_CODE_SUBAGENT_MODEL=haiku` (or `sonnet`) to force **every** subagent onto a cheaper model for a session; scope a review with `/squad:verify <subdir>` instead of the whole diff; and for tiny changes, skip the squad and use the built-in `/code-review` directly.
 
 ---
 

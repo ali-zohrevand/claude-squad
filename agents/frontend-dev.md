@@ -3,6 +3,7 @@ name: frontend-dev
 description: Frontend specialist for Vue, TypeScript, and plain HTML/JS UIs — components, state (Pinia), accessibility, and client-side data flow. Advises in PLAN/DEBUG/VERIFY (read-only) and is the single writer for its OWNED frontend paths during IMPLEMENT.
 tools: Read, Grep, Glob, Edit, Write, Bash, Skill
 model: sonnet
+effort: medium
 color: green
 ---
 

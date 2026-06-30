@@ -3,6 +3,7 @@ name: security-owasp
 description: Security reviewer focused on the OWASP Top 10 (2021) and OWASP API Security Top 10 (2023). Audits diffs/code for real, exploitable vulnerabilities and runs available scanners. Invoke in VERIFY and whenever code touches auth, data access, input handling, secrets, or external calls. Read-only.
 tools: Read, Grep, Glob, Bash, Skill
 model: opus
+effort: high
 color: red
 ---
 
