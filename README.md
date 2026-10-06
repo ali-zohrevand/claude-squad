@@ -1,6 +1,8 @@
 # squad — a role-based, stack-adaptive workflow for Claude Code
 
-`squad` packages a complete development workflow as a Claude Code plugin: **plan → debug → implement → verify**. Each phase fans out to a team of specialist subagents (product owner, tech lead, frontend, backend, QA, tester, security/OWASP) that **detect your project's stack** — TypeScript, Vue, NestJS, Go, PHP, plain HTML/JS — and apply the right conventions and verify commands automatically.
+`squad` packages a complete development workflow as a Claude Code plugin: **plan → debug → implement → verify**. Each phase dispatches only the specialist subagents that apply (product owner, tech lead, frontend, backend, QA, tester, security/OWASP). They **detect your project's stack** — TypeScript, Vue, NestJS, Go, PHP, plain HTML/JS — and apply the right conventions and verify commands automatically.
+
+Every phase states its **goal**, the exact **deliverable**, the **verification it must run** (not claim), and when it may act on its own. Routine calls are made and logged in a one-line Decisions list, so a phase finishes instead of stopping to ask.
 
 One install serves every project. It composes with the official plugins you already have (superpowers, code-review, security-review, context7, playwright) instead of reinventing them.
 
@@ -57,10 +59,10 @@ Local development (before pushing changes):
 
 | Command | Phase | What it does |
 |---|---|---|
-| `/squad:plan <feature>` | Plan | Research + competitor benchmark, then PO / tech-lead / frontend / backend / QA design in parallel → a written, stack-aware implementation plan. |
-| `/squad:debug <issue>` | Debug | Systematic debugging: reproduce first, then fan out root-cause hypotheses per lens, converge on the **proven** cause before any fix. |
-| `/squad:implement <plan>` | Implement | Hybrid single-writer: design in parallel → write serially by file ownership with TDD → run the verify suite → fresh-context review gate. |
-| `/squad:verify [scope]` | Verify | Full-squad parallel review (incl. security/OWASP) → one severity-ranked, high-signal GO / NO-GO. |
+| `/squad:plan <feature>` | Plan | Stack from injected context, one brief, then only the lenses that apply (PO / tech-lead / frontend / backend / QA) in parallel → a written plan with **Directions** (2–3 side by side, winner marked), build list with ownership, verify commands, and a Decisions log. |
+| `/squad:debug <issue>` | Debug | Systematic debugging: reproduce first, then only the lenses the symptom implicates form ranked hypotheses, converge on the **proven** cause (evidence pasted) before any fix. |
+| `/squad:implement <plan>` | Implement | Hybrid single-writer: brief once → design review in parallel → write serially by file ownership with TDD → verify suite in the background → fresh-context review gate. Before/after test output is part of the deliverable. |
+| `/squad:verify [scope]` | Verify | Classify the diff without an agent, cost-gate, then only the lenses that apply in parallel → one severity-ranked, high-signal GO / NO-GO (also rendered via ReportFindings in the editor when available). |
 
 ---
 
@@ -80,19 +82,21 @@ Typical loop: `/squad:plan` → review the written plan → `/squad:implement` �
 
 ## The agents
 
-Seven specialist subagents (in `agents/`). Each has a focused persona, a least-privilege tool set, and is told to detect the stack and load `squad:stack-conventions` before giving stack-specific advice. Read-only by default; the writer agents only edit during `implement`, and only the paths they own.
+Seven specialist subagents (in `agents/`). Each has a focused persona, a least-privilege tool set, a turn cap, and a strict output cap. Each reads the phase's **brief** (one file the orchestrator writes once) instead of re-detecting the stack; only when no brief is given does it detect the stack and load `squad:stack-conventions` itself. Read-only by default; the writer agents only edit during `implement`, and only the paths they own.
 
-| Agent | Model | Tools | Responsibility |
-|---|---|---|---|
-| `product-owner` | sonnet | Read, Grep, Glob, WebFetch, WebSearch, Skill | Requirements, user stories, acceptance criteria, competitor benchmarking, scope cuts |
-| `tech-lead` | opus | Read, Grep, Glob, Bash, WebFetch, WebSearch, Skill | Stack detection, architecture, decomposition, file-ownership boundaries, trade-offs, risk |
-| `frontend-dev` | sonnet | Read, Grep, Glob, Edit, Write, Bash, Skill | Vue / TS / HTML-JS UI, components, state (Pinia), a11y; writer for FE-owned paths |
-| `backend-dev` | sonnet | Read, Grep, Glob, Edit, Write, Bash, Skill | NestJS / Go / PHP / Node APIs, data layer, business logic; writer for BE-owned paths |
-| `qa` | sonnet | Read, Grep, Glob, Edit, Write, Bash, Skill | Test strategy, edge cases, coverage gaps; writes test files |
-| `tester` | haiku | Read, Grep, Glob, Bash, Skill | Runs the stack's lint/typecheck/test/build, reproduces bugs, reports pass/fail with evidence |
-| `security-owasp` | opus | Read, Grep, Glob, Bash, Skill | OWASP Top 10 (2021) + API Top 10 (2023) review; runs scanners; confidence-filtered findings |
+| Agent | Model / effort | Max turns | Tools | Responsibility |
+|---|---|---|---|---|
+| `product-owner` | sonnet / medium | 20 | Read, Grep, Glob, WebFetch, WebSearch, Skill | Stories, acceptance criteria, cut list; benchmark only for novel user-facing features |
+| `tech-lead` | opus / high | 30 | Read, Grep, Glob, Bash, WebFetch, WebSearch, Skill | Architecture anchored to real paths, directions, build list, file ownership, risk; single reviewer for small diffs. Keeps a project memory of the stack report |
+| `frontend-dev` | sonnet / medium | 40 | Read, Grep, Glob, Edit, Write, Bash, Skill | Vue / TS / HTML-JS UI, state (Pinia), a11y; writer for FE-owned paths |
+| `backend-dev` | sonnet / medium | 40 | Read, Grep, Glob, Edit, Write, Bash, Skill | NestJS / Go / PHP / Node APIs, data layer, logic; writer for BE-owned paths |
+| `qa` | sonnet / medium | 30 | Read, Grep, Glob, Edit, Write, Bash, Skill | Test plan mapped to acceptance criteria; writes the failing tests first |
+| `tester` | haiku | 20 | Read, Grep, Glob, Bash, Skill | Runs lint/typecheck/test/build in the background, reproduces bugs, reports pass/fail with output |
+| `security-owasp` | opus / high | 30 | Read, Grep, Glob, Bash, Skill | OWASP Top 10 (2021) + API Top 10 (2023) + LLM-facing code; runs scanners; ≥ High-confidence findings only |
 
-**Models & effort are tuned for cost.** Each agent pins a reasoning `effort` so it doesn't inherit an expensive session default: `high` for the deep roles (tech-lead, security-owasp), `medium` for the advisory/writer roles, and the mechanical `tester` runs on the cheap **haiku** tier (which has no effort knob). Aliases (`opus`/`sonnet`/`haiku`) are used — never pinned ids — so they never age. See [Cost controls](#cost-controls).
+Aliases (`opus`/`sonnet`/`haiku`) are used, never pinned ids, so they never age. Every agent sets a 1-hour prompt-cache TTL (`experimental.cacheTtl`) so its system prompt stays cached across the plan → implement → verify loop on a subscription. See [Cost controls](#cost-controls).
+
+> `tech-lead` uses `memory: project`, which stores its stack report under `.claude/agent-memory/tech-lead/` in your repo so later sessions skip re-detection. Remove that line from `agents/tech-lead.md` (or add the directory to `.gitignore`) if you'd rather not.
 
 ---
 
@@ -115,23 +119,40 @@ Polyglot repos (e.g. Vue front + Go back) load multiple files automatically.
 
 ## Design principles
 
-- **Fan out for read-only breadth; single-writer for code.** Parallel *writer* agents corrupt shared state (Anthropic and Cognition both document this), so `implement` designs in parallel but writes serially by file ownership.
-- **Deterministic commands**, not unreliable auto-routing — each command scripts exactly which agents run and in what order.
-- **One adaptive agent set, not N-per-language** — agents detect the stack at runtime.
+The working method lives in one shared skill, `squad:method` (`skills/method/SKILL.md`), loaded once per phase. It borrows from how Anthropic's design team describes its own process:
+
+- **Shape before polish.** Settle the idea and the user outcome first; naming and style are the last pass.
+- **Ask the review questions before designing.** Who is this for, what changes for them, does it need a new name or can it stay invisible?
+- **Never start from nothing.** Every design is anchored to real paths in the repo; reuse is named before new code is proposed.
+- **Go wide, then decide.** Real forks get 2–3 directions side by side with the winner marked and one line of why. The plan doubles as the decision log.
+- **Restraint is taste.** Fewer files, fewer layers, fewer agents.
+- **Every claim has a source.** Findings carry `path:line`, passes carry command output, numbers carry where they came from.
+- **Run the checks; do not claim them.** Each command ends with a `<verification>` block that must be executed before "done".
+
+Structural rules that follow from this:
+
+- **Fan out for read-only breadth; single-writer for code.** Parallel *writer* agents corrupt shared state, so `implement` designs in parallel but writes serially by file ownership.
+- **Deterministic commands**, not auto-routing — each command scripts which agents run, in what order, and under which conditions.
+- **One adaptive agent set, not N-per-language** — agents read the stack from the brief, or detect it at runtime.
+- **Autonomy with a log.** Routine calls are made, not asked, and written as one-line Decisions. A phase stops only for missing rights, unsafe actions, or an ambiguity that changes the goal.
 - **High signal** — reviews report only findings at confidence ≥ 80.
 
 ---
 
 ## Cost controls
 
-The fan-out phases (`verify`, `implement`) are the token-heavy ones. squad keeps them lean three ways:
+The fan-out phases (`verify`, `implement`) are the token-heavy ones. squad keeps them lean:
 
-- **Per-agent effort.** Every agent pins an `effort` (`high` for tech-lead + security-owasp, `medium` for the rest) so it doesn't inherit an expensive session-wide `xhigh`/`max`. Lower effort = far fewer thinking tokens. Raise an agent's `effort` in its frontmatter only if you need deeper analysis.
-- **Cheap mechanical tier.** `tester` runs on **haiku** — it just executes lint/test/build and reports, no deep reasoning needed.
-- **Conditional fan-out.** `verify` and `implement` first do one cheap `tech-lead` pass to classify the change, then dispatch **only the lenses that apply** (no frontend reviewer for a backend-only diff, no security pass unless security-sensitive code changed), and for a small/single-domain change they skip the fan-out entirely and use one reviewer. Skipping a lens is the single biggest saving — a one-file change might run two agents, not seven.
-- **Context passed once, summaries back.** The orchestrator extracts the diff/design once and passes it inline to each agent (instead of every agent re-running `git diff` and re-reading the repo in its own fresh context), and each agent returns a short severity-ranked summary rather than the code it read.
+- **Stack detection is free.** Each command injects the manifests, scripts, and `CLAUDE.md` into its own context at load time (`!` dynamic context), so the orchestrator writes the stack report itself. No opus dispatch just to find `package.json`.
+- **One brief, passed by path.** The orchestrator writes `squad-brief.md` (and `squad-diff.patch` for verify) to its scratchpad once and hands agents the path. The diff is never pasted into N delegation prompts, and agents skip re-detection and skill reloads when a brief exists.
+- **Skip a lens before you shrink one.** `verify` classifies the diff without an agent, then cost-gates: docs-only → tester only; small single-domain → tester + tech-lead; fan-out only for large or multi-domain diffs. `plan`, `debug`, and `implement` dispatch only the lenses the change implicates.
+- **Per-agent effort and turn caps.** `high` for tech-lead and security-owasp, `medium` for the rest, `haiku` for the mechanical tester, and a `maxTurns` on every agent so a confused agent returns partial instead of spending the budget.
+- **Background + continue.** The tester runs with `run_in_background` while reviewers work. A failing check goes back to the **same** writer agent (context intact) rather than a fresh dispatch that re-reads the repo.
+- **Cheaper model per dispatch.** Classification-only or mechanical tasks pass the Agent tool's `model` override (`sonnet`/`haiku`) regardless of the agent's default.
+- **Summaries back, never code dumps.** Every agent has an output cap (~300 words or ≤ 10 ranked items).
+- **1-hour prompt cache per agent.** `experimental.cacheTtl: 1h` keeps each agent's system prompt cached across phases within an hour on subscription plans.
 
-Extra knobs: set `CLAUDE_CODE_SUBAGENT_MODEL=haiku` (or `sonnet`) to force **every** subagent onto a cheaper model for a session; scope a review with `/squad:verify <subdir>` instead of the whole diff; and for tiny changes, skip the squad and use the built-in `/code-review` directly.
+Extra knobs: set `CLAUDE_CODE_SUBAGENT_MODEL=haiku` (or `sonnet`) to force **every** subagent onto a cheaper model for a session; scope a review with `/squad:verify <subdir>`; for tiny changes skip the squad and use the built-in `/code-review`. Inspect the plugin's own context cost with `claude plugin details squad` or `/skill-doctor`.
 
 ---
 
@@ -142,6 +163,8 @@ Extra knobs: set `CLAUDE_CODE_SUBAGENT_MODEL=haiku` (or `sonnet`) to force **eve
 - **context7** — live library docs during `plan`.
 - **playwright** — browser testing in `verify`.
 - **typescript-lsp / php-lsp** — language intelligence while editing.
+- **Workflow tool (ultracode)** — if you've opted into multi-agent workflows, `verify`'s fan-out maps onto the pipeline pattern; otherwise the Agent tool is used.
+- **ReportFindings** — `verify` also reports findings through the editor's findings UI when the tool is available.
 
 ---
 
@@ -156,8 +179,10 @@ Declare your stack and house rules in the project's `CLAUDE.md`. The `tech-lead`
 ```text
 .claude-plugin/   plugin.json + marketplace.json
 agents/           7 role subagents
-commands/         4 phase orchestrators (plan, debug, implement, verify)
+commands/         4 phase orchestrators (plan, debug, implement, verify), each with goal / principles / inputs / workflow / delivery / verification blocks
+skills/method/    the shared working method: principles, brief format, decision log, token rules, output caps
 skills/stack-conventions/   SKILL.md + typescript, vue, nestjs, go, php, html-js
+evals/            `claude plugin eval` cases (cost discipline of verify, anchoring of plan)
 ```
 
 ---
@@ -171,6 +196,12 @@ git commit -am "…" && git push
 ```
 
 Validate before pushing: `claude plugin validate ~/projects/claude-squad`. Inspect the component inventory + token cost: `claude plugin details squad`.
+
+Run the eval suite (each case scaffolds a tiny repo and runs a real session, so it costs tokens):
+
+```text
+claude plugin eval ~/projects/claude-squad --scaffold --runs 1 --max-cost-usd 5
+```
 
 > Note: if `/plugin update` reports "Plugin not found" after a `marketplace update`, do a clean cycle: `claude plugin uninstall squad && claude plugin install squad@claude-squad`.
 

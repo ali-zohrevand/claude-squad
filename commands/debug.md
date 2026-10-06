@@ -1,33 +1,43 @@
 ---
-description: DEBUG phase — drive systematic debugging, fan out the squad to form root-cause hypotheses from each lens, reproduce the bug, and converge on the verified cause before any fix.
+description: DEBUG phase — systematic debugging. Reproduce first, fan out only the lenses the symptom implicates to form root-cause hypotheses, and converge on the proven cause before any fix.
 argument-hint: <bug / failure / unexpected behavior>
 ---
 
 You are orchestrating the squad's **DEBUG** phase for: **$ARGUMENTS**
 
-Investigation only — find and **prove the root cause** before proposing a fix. Do not patch symptoms.
+<goal>
+A verified root cause with the evidence that proves it, plus the minimal fix and the regression test that should accompany it. A list of guesses is not the deliverable. No patches here; `/squad:implement` makes the change.
+</goal>
 
-## 1. Drive systematic debugging
+<principles>
+Load `squad:method` once and follow it. Every claim has a source: a log line, a failing test, a `path:line`. Make routine calls yourself and log them under Decisions.
+</principles>
 
-Run the `superpowers:systematic-debugging` skill — it sets the discipline (reproduce → isolate → hypothesize → test the hypothesis → confirm). Use it as the spine of this phase.
+<inputs>
+- Manifests present: !`ls package.json go.mod composer.json nest-cli.json phpstan.neon .golangci.yml 2>/dev/null | tr '\n' ' '`
+- Scripts: !`node -e "try{console.log(Object.keys(require('./package.json').scripts||{}).join(' '))}catch(e){}" 2>/dev/null`
+- Recent commits: !`git log --oneline -8 2>/dev/null`
+- Working tree: !`git status --short 2>/dev/null | head -20`
+- House rules: !`head -40 CLAUDE.md 2>/dev/null || echo '(no CLAUDE.md)'`
+</inputs>
 
-## 2. Detect the stack
+<workflow>
+1. **Discipline.** Run `superpowers:systematic-debugging`; it is the spine (reproduce → isolate → hypothesize → test → confirm).
+2. **Brief.** Write the stack report yourself from the signals above. Write `squad-brief.md` to your scratchpad: stack, verify commands, the symptom in the reporter's words, recent commits, what has already been ruled out.
+3. **Reproduce first.** Dispatch **tester** with the brief path to produce a minimal reliable repro: command, expected vs actual, failing output, `path:line`, consistent or intermittent. If it cannot reproduce, gather the missing facts before going further. Append the repro to the brief.
+4. **Hypotheses, only the lenses the symptom implicates, in ONE message (parallel, read-only).** Each returns ≤ 3 ranked hypotheses with evidence and the cheapest check that confirms or kills each:
+   - **tech-lead** → integration, config, concurrency, recent-change causes.
+   - **backend-dev** → only if server/data/logic is involved.
+   - **frontend-dev** → only if the symptom is UI-side.
+   - **qa** → which test was missing and how to capture the regression.
+   A symptom that clearly lives in one layer needs one lens, not four.
+5. **Converge.** Dedupe and rank. Confirm the top hypothesis with evidence you ran (a targeted check, a log, a failing test). If it dies, test the next; do not stop at a plausible story.
+</workflow>
 
-Dispatch **tech-lead** to detect the stack and load `squad:stack-conventions`. Capture the stack report for the other delegations.
+<delivery>
+Report: the repro · **Root cause** (one paragraph, with the proving evidence pasted) · hypotheses considered and how each was killed · minimal fix (files, change) · regression test to add · **Decisions**. Hand off to `/squad:implement` with the failing test first.
+</delivery>
 
-## 3. Reproduce first
-
-Dispatch **tester** to produce a minimal, reliable repro: exact steps/command, expected vs actual, the failing output (log/stack/assertion) and where it surfaces (`path:line`), and whether it's consistent or intermittent. If it can't be reproduced, gather the missing info before going further.
-
-## 4. Fan out hypotheses (parallel, read-only)
-
-With the repro in hand, dispatch in one message — each forms a root-cause hypothesis from its lens, ranked by likelihood, with the evidence and the cheapest way to confirm or kill it:
-
-- **tech-lead** → architectural/integration causes (boundaries, config, concurrency, recent changes).
-- **backend-dev** → server/data/logic causes (queries, transactions, error handling, types).
-- **frontend-dev** → client/state/render causes (only if the symptom is UI-side).
-- **qa** → what test was missing that let this through; how to capture it as a regression test.
-
-## 5. Converge
-
-Collect hypotheses, dedupe, and rank. Confirm the top one with evidence (a targeted check, log, or failing test) — **state the verified root cause**, not a guess. Then propose the minimal fix and the regression test that should accompany it. Hand off to `/squad:implement` to make the change (with a failing test first).
+<verification>
+Run the checks; do not just claim them. The root cause is stated only after a check you executed shows it. If you could not prove it, say so and list what evidence is missing.
+</verification>

@@ -18,6 +18,8 @@ By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 .claude-plugin/   plugin.json + marketplace.json (the manifests)
 agents/           7 role subagents (one .md per role)
 commands/         4 phase orchestrators (plan, debug, implement, verify)
+skills/method/    shared working method (principles, brief, decisions, token rules, output caps)
+evals/            claude plugin eval cases
 skills/stack-conventions/   SKILL.md (router) + one file per stack
 ```
 
